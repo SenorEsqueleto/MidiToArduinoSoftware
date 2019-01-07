@@ -5,3 +5,9 @@ Needed to figure out how to read the midi events being output by the python3-mid
 We eventually figured out that the NoteOnEvent has a tick value that indicates the time since the last note ended. The NoteOffEvent also has a tick but it represents how long the current note has been played.
 
 Data[0] is the note being played.
+
+We had to write down the frequency of every single note on the piano.
+
+#Big Problem
+
+python-midi has next to no documentation, meaning I basically know nothing about how to use the code.
