@@ -2,6 +2,7 @@ import midi
 import os
 import time
 import glob
+from mido import Message, MidiFile, MidiTrack
 
 # This list contains the note read by python3-midi, then the real frequency that the arduino should read
 notes = {
@@ -98,7 +99,7 @@ notes = {
 
 print(notes)
 
-debug = True;
+debug = False;
 
 # Takes the midi and generates beep() functions
 def generateBeeps(track):
@@ -108,10 +109,16 @@ def generateBeeps(track):
 
 	# If should debug, print track
 	#print(track[tracknum])
-	print(track)
+	if debug is True:
+		print(track)
 
-	# For each event in the 1st track of the midi, do tis function
+	for event in track[0]:
+		if isinstance(event, midi.SetTempoEvent):
+			print(event.bpm)
+
+	# For each event in the 1st track of the midi, do this function
 	for event in track[tracknum]:
+
 		# If its the start of a note, do...
 		if isinstance(event, midi.NoteOnEvent):
 			# Delay the code by the NoteOnEvent tick (which is equal to the amount of time since the last note)
@@ -162,6 +169,7 @@ def MakeCode(midname):
 	headerfile.close()
 	# Read midi track
 	track = midi.read_midifile(midname);
+
 	# Generate beepstring
 	generateBeeps(track);
 	# footer.txt contains anything after loop(), which in this case is just a curly brace
