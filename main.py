@@ -99,30 +99,64 @@ notes = {
 
 print(notes)
 
-debug = False;
+debug = True;
 
 # Takes the midi and generates beep() functions
 def generateBeeps(track):
 	# beepstring is the final string that will be returned
 	beepstring = "";
-	tracknum = 1
+	tracknum = 2
 
 	# If should debug, print track
 	#print(track[tracknum])
 	if debug is True:
 		print(track)
 
+	bpm = 0.0
+	milipertick = None
+	tempotrack = 0
+
+	'''
 	for event in track[0]:
 		if isinstance(event, midi.SetTempoEvent):
+			bpm = event.bpm
 			print(event.bpm)
+			print(event.mpqn)
+			resolution = track.resolution
+			#resolution += 577
+			#track.resolution = resolution
+			microsec = event.mpqn
+			stepone = microsec / resolution
+			finaltime = stepone / 1000.0
+			milipertick = float("{0:.2f}".format(finaltime))
+			break
+	'''
+	for tracc in track:
+		for event in tracc:
+			if isinstance(event, midi.SetTempoEvent):
+				bpm = event.bpm
+				print(event.bpm)
+				print(event.mpqn)
+				resolution = track.resolution
+				#resolution += 577
+				#track.resolution = resolution
+				microsec = event.mpqn
+				stepone = microsec / resolution
+				finaltime = stepone / 1000.0
+				milipertick = float("{0:.2f}".format(finaltime))
+				break
+
+	if milipertick is None:
+		print("Tempo not found, errored...")
+		return "// Shit broke..."
+
+	print(milipertick)
 
 	# For each event in the 1st track of the midi, do this function
 	for event in track[tracknum]:
 
 		# If its the start of a note, do...
 		if isinstance(event, midi.NoteOnEvent):
-			# Delay the code by the NoteOnEvent tick (which is equal to the amount of time since the last note)
-			beepstring += "delay(" + str(event.tick) + ");\n";
 			# Make a beep with the note (incorrect as of now) and the duration is the tick of the next event (hopefully the NoteOffEvent, should probably make sure of that)
 
 			note = 0;
@@ -132,9 +166,35 @@ def generateBeeps(track):
 			else:
 				note = event.data[0]
 
-			beepstring += "beep(" + str(note) + "," + str(track[tracknum][track[tracknum].index(event) + 1].tick) + ");\n";
+			noteoff = getNoteOff(track, event, tracknum, 1);
+			if noteoff is None:
+				break
+			elif isinstance(noteoff, midi.NoteOnEvent):
+				# Delay the code by the NoteOnEvent tick (which is equal to the amount of time since the last note)
+				beepstring += "delay(0);\n";
+			elif isinstance(noteoff, midi.NoteOffEvent):
+				beepstring += "delay(" + str(event.tick) + ");\n";
+			elif noteoff is "":
+				continue
+			
+			#print(noteoff)
+			duration = noteoff.tick * milipertick
+
+			beepstring += "beep(" + str(note) + "," + str(duration) + "); //" + str(event) + " and " + str(noteoff) + "\n";
 	# Give the code the final string
 	return beepstring
+
+def getNoteOff(track, event, tracknum, index):
+	#print(index)
+	if isinstance(track[tracknum][track[tracknum].index(event) + index], midi.NoteOffEvent):
+		return track[tracknum][track[tracknum].index(event) + index]
+	elif isinstance(track[tracknum][track[tracknum].index(event) + index], midi.NoteOnEvent):
+		return track[tracknum][track[tracknum].index(event) + index]
+	else:
+		return ""
+	#else:
+	#	#print('nope')
+	#	return getNoteOff(track, event, tracknum, index + 1)
 
 # Creates a list of all .mid files in the current directory
 midlist = glob.glob('*.mid');
@@ -160,6 +220,9 @@ def getMidName(listlength):
 	else:
 		print('You typed ' + str(s))
 		return midlist[s - 1]
+
+def getTrack():
+	print("not yet")
 
 # Puts all the functions together and creates the final string
 def MakeCode(midname):
