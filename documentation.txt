@@ -8,6 +8,8 @@ Data[0] is the note being played.
 
 We had to write down the frequency of every single note on the piano.
 
+we forgot to convert numbers to words (int to string)
+
 #Big Problem
 
 python-midi has next to no documentation, meaning I basically know nothing about how to use the code.
