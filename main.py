@@ -171,7 +171,7 @@ def generateBeeps(track):
 				break
 			elif isinstance(noteoff, midi.NoteOnEvent):
 				# Delay the code by the NoteOnEvent tick (which is equal to the amount of time since the last note)
-				beepstring += "delay(" + noteoff.tick + ");\n";
+				beepstring += "delay(" + str(noteoff.tick) + ");\n";
 			elif isinstance(noteoff, midi.NoteOffEvent):
 				beepstring += "delay(" + str(event.tick) + ");\n";
 			elif noteoff is "":
